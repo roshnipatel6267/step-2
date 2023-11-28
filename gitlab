@@ -1,0 +1,73 @@
+Step 1: Prepare the Node.js Application
+Ensure your Node.js application is ready and hosted in a GitLab repository.
+
+Step 2: Set Up a Self-Hosted Runner
+Install GitLab Runner on your VM:
+
+bash
+Copy code
+sudo apt-get update
+sudo apt-get install gitlab-runner
+Register the runner:
+
+bash
+Copy code
+sudo gitlab-runner register
+Follow the prompts to configure the runner. Make sure to specify the correct GitLab instance URL and registration token.
+
+Step 3: Configure Deployment Script
+Create a deployment script (e.g., deploy.sh) in your Node.js project. This script should pull the latest changes from GitLab, install dependencies, build the application, and restart the server. Adjust it based on your project structure and deployment requirements.
+
+Example deploy.sh:
+
+bash
+Copy code
+#!/bin/bash
+
+# Stop the existing Node.js process
+pm2 stop your_app_name
+
+# Pull the latest changes from GitLab
+git pull origin master
+
+# Install dependencies
+npm install
+
+# Build the application
+npm run build
+
+# Restart the Node.js process using pm2
+pm2 start your_app_name
+Make sure to replace your_app_name with the actual name of your Node.js application.
+
+Step 4: Configure .gitlab-ci.yml
+Create a .gitlab-ci.yml file in the root of your GitLab repository. This file defines the CI/CD pipeline stages and jobs.
+
+Example .gitlab-ci.yml:
+
+yaml
+Copy code
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  script:
+    - ssh user@your_server_ip 'bash -s' < deploy.sh
+  only:
+    - master
+Replace user with your server username and your_server_ip with the IP address or hostname of your VM-based server.
+
+Step 5: Configure SSH Key
+For secure deployment, you'll need to set up SSH keys:
+
+Generate an SSH key pair on your GitLab Runner server:
+
+bash
+Copy code
+ssh-keygen -t rsa -b 4096
+Add the public key (~/.ssh/id_rsa.pub) to the ~/.ssh/authorized_keys file on your VM-based server.
+
+Step 6: Run the Pipeline
+Push your changes to the GitLab repository to trigger the CI/CD pipeline:
+
